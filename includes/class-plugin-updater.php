@@ -58,19 +58,14 @@ class PluginUpdater {
         // --- Etapa de Download Melhorada ---
         error_log('[MRP Updater V5] Baixando pacote com wp_remote_get e sslverify=false.');
         
-        // Adiciona Token de Licença se existir como client_token
-        $license_token = get_option('meu_repositorio_license_token', '');
-        if (!empty($license_token)) {
-            $package_url = add_query_arg('client_token', $license_token, $package_url);
-        }
-        
-        // Adiciona Site URL e IP do cliente (opcional, mas o server pega remote_addr)
-        // Isso corrige o "Site: Desconhecido" no log do servidor
-        $package_url = add_query_arg('requesting_site_url', home_url(), $package_url);
+        // Os parâmetros 'token', 'client_token' e 'requesting_site_url' já vêm embutidos na URL pelo servidor V3.
+        // Adicionar novamente aqui pode sobrescrever tokens corretos por tokens globais antigos.
+        // Apenas garantimos que o home_url() seja enviado se não existir, mas o ideal é confiar na URL do servidor.
 
         $response = wp_remote_get($package_url, [
-            'timeout'   => 300,
-            'sslverify' => false // Força a desativação da verificação SSL
+            'timeout'    => 300,
+            'sslverify'  => false,
+            'user-agent' => 'MeuRepositorioClient/' . MRP_VERSION . '; ' . get_bloginfo('url')
         ]);
 
         if (is_wp_error($response)) {
